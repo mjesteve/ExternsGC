@@ -32,7 +32,7 @@ const tsHost = ts.createCompilerHost(tsOptions);
 const tsickleHost = {
   shouldSkipTsickleProcessing: () => false,
   shouldIgnoreWarningsForPath: () => false,
-  pathToModuleName: () => "inspiretree", // nombre lógico estable
+  pathToModuleName: () => "inspireTree", // nombre lógico estable
   fileNameToModuleId: f => f,
   transformDecorators: false,
   transformTypesToClosure: true,
@@ -77,6 +77,10 @@ var inspiretree = {};
 const umdFooter = `
 /** @suppress {duplicate} */
 var module$exports$inspiretree = inspiretree;
+
+/** @const */ var InspireTree = inspiretree.InspireTree;
+/** @const */ var TreeNodes   = inspiretree.TreeNodes;
+/** @const */ var TreeNode    = inspiretree.TreeNode;
 `;
 
 // --- CONSTRUCCIÓN DEL FICHERO FINAL ---

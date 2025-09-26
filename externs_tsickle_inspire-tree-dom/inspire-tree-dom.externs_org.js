@@ -62,11 +62,9 @@ inspiretree.InspireTreeDOM = function(tree, opts) {};
 
 
 /**
- * @suppress {duplicate}
- * Publica el constructor DOM bajo el namespace lógico inspiretree.dom.
+ * @constructor
+ * @param {*} tree
+ * @param {!inspiretree.dom.Config|!Object} opts
  */
-if (typeof inspiretree !== "undefined") {
-  /** @type {function(*, !Object)} */
-  inspiretree.dom.InspireTreeDOM = /** @type {?} */ (typeof InspireTreeDOM !== "undefined" ? InspireTreeDOM : undefined);
-}
+inspiretree.dom.InspireTreeDOM = function(tree, opts) {};
 

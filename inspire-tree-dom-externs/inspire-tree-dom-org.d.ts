@@ -1,6 +1,5 @@
 
 import { TreeNode } from 'inspire-tree';
-import { InspireTree } from 'inspire-tree';
 
 /**
  * Validation callback for validating drag node may be dropped into the target.
@@ -28,7 +27,7 @@ export interface Config {
 }
 
 declare class InspireTreeDOM {
-    constructor(tree: InspireTree, opts: Config);
+    constructor(tree: any, opts: Config);
 }
 
 export default InspireTreeDOM;

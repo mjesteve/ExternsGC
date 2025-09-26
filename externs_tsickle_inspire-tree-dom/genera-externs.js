@@ -54,16 +54,7 @@ const emitResult = tsickle.emitWithTsickle(
   true // emitOnlyDtsFiles
 );
 
-let externs = tsickle.getGeneratedExterns(emitResult.externs, process.cwd());
-
-// --- Sanitización ligera (defensiva) ---
-externs = externs
-  // Generator.prototype[Symbol.iterator] = function() {};
-  .replace(/\n\s*Generator\.prototype\[Symbol\.iterator\]\s*=\s*function\(\)\s*{\s*};?/g, "")
-  // Symbol.iterator = ...
-  .replace(/\n\s*Symbol\.iterator\s*=\s*[^;]+;?/g, "");
-
-// --- Cabecera: declara namespace global y símbolos CommonJS (sin asignaciones) ---
+// --- CABECERA UMD / CommonJS solo con DECLARACIONES ---
 const umdHeader = `/** @externs */
 /** @suppress {duplicate,checkTypes,externsValidation,uselessCode} */
 
@@ -81,35 +72,33 @@ const umdHeader = `/** @externs */
 /** @const */ var module$exports$inspiretree$dom;
 `;
 
-// --- Postproceso específico para DOM ---
-// 1) Si tsickle nombró el módulo con sufijos internos tipo inspiretree$dom, normalizamos.
-// 2) Afinamos tipos lazos a algo más útil para externc/AS3.
+// --- Sanitización ligera (defensiva) ---
+let externs = tsickle.getGeneratedExterns(emitResult.externs, process.cwd());
 externs = externs
-  // Elimina posibles creaciones "var inspiretree$dom = {};" de tsickle
+  .replace(/\n\s*Generator\.prototype\[Symbol\.iterator\]\s*=\s*function\(\)\s*{\s*};?/g, "")
+  .replace(/\n\s*Symbol\.iterator\s*=\s*[^;]+;?/g, "");
+
+// Normaliza posibles nombres internos (si aparecieran)
+externs = externs
   .replace(/^\s*\/\*\*\s*@const\s*\*\/\s*var\s+inspiretree\$dom\s*=\s*\{\s*\};\s*$/m, "")
-  // Sustituye prefix "inspiretree$dom." por "inspiretree.dom."
   .replace(/inspiretree\$dom\./g, "inspiretree.dom.")
-  // Relaja parámetros y tipos "?" a "*" donde corresponda
   .replace(/@param\s+\{\?\}\s+tree/g, "@param {*} tree")
   .replace(/@type\s+\{\?\}/g, "@type {*}");
 
-// --- Alias namespaced explícito para el constructor DOM ---
-// Queremos: inspiretree.dom.InspireTreeDOM = InspireTreeDOM;
-// - Si el d.ts define la clase como global "InspireTreeDOM", este alias la publica bajo inspiretree.dom
-// - Es común en externs hacer asignaciones de alias/namespace
-const aliasBlock = `
+// --- Declaración explícita del constructor bajo inspiretree.dom (SIN asignaciones) ---
+// Si tsickle ya generó `inspiretree.dom.InspireTreeDOM`, este bloque es un duplicado compatible.
+// Si solo generó el global `InspireTreeDOM`, con esto también lo exponemos namespaced.
+const domCtorDecl = `
 /**
- * @suppress {duplicate}
- * Publica el constructor DOM bajo el namespace lógico inspiretree.dom.
+ * @constructor
+ * @param {*} tree
+ * @param {!inspiretree.dom.Config|!Object} opts
  */
-if (typeof inspiretree !== "undefined") {
-  /** @type {function(*, !Object)} */
-  inspiretree.dom.InspireTreeDOM = /** @type {?} */ (typeof InspireTreeDOM !== "undefined" ? InspireTreeDOM : undefined);
-}
+inspiretree.dom.InspireTreeDOM = function(tree, opts) {};
 `;
 
-// --- Ensamblado final ---
-const finalExterns = `${umdHeader}\n${externs}\n${aliasBlock}\n`;
+// --- Ensamblado final (solo declaraciones, sin lógica) ---
+const finalExterns = `${umdHeader}\n${externs}\n${domCtorDecl}\n`;
 fs.writeFileSync(outputFile, finalExterns, "utf8");
 
 console.log("✅ Externs CommonJS escritos en:", outputFile);
